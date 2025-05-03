@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { TextDisplay } from './TextDisplay';
 import { Keyboard } from './Keyboard';
 import { MetricsPanel } from '../metrics/MetricsPanel';
@@ -9,7 +9,7 @@ import { useTypingTest } from '../../hooks/useTypingTest';
 import { useKeyboard } from '../../hooks/useKeyboard';
 import { useTopicSuggestions } from '../../hooks/useTopicSuggestions';
 import { useContentGenerator } from '../../hooks/useContentGenerator';
-import { KEYBOARD_LETTERS } from '../../utils/constants';
+import { KEYBOARD_LETTERS, TOPIC_SUGGESTIONS } from '../../utils/constants';
 
 export const TypingTest: React.FC = () => {
     const {
@@ -63,6 +63,54 @@ export const TypingTest: React.FC = () => {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Placeholder animation state
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
+    const [currentPlaceholder, setCurrentPlaceholder] = useState('');
+    const [isTypingPlaceholder, setIsTypingPlaceholder] = useState(true);
+    const [shouldAnimate, setShouldAnimate] = useState(true);
+
+    // Animation for typing and deleting effect
+    useEffect(() => {
+        if (!shouldAnimate) return;
+
+        const currentTopic = TOPIC_SUGGESTIONS[placeholderIndex];
+
+        let timer: number;
+
+        if (isTypingPlaceholder) {
+            if (currentPlaceholder.length < currentTopic.length) {
+                timer = window.setTimeout(() => {
+                    setCurrentPlaceholder(currentTopic.slice(0, currentPlaceholder.length + 1));
+                }, 100); // Typing speed
+            } else {
+                // Pause at the end of typing
+                timer = window.setTimeout(() => {
+                    setIsTypingPlaceholder(false);
+                }, 2000); // Pause duration
+            }
+        } else {
+            if (currentPlaceholder.length > 0) {
+                timer = window.setTimeout(() => {
+                    setCurrentPlaceholder(currentPlaceholder.slice(0, currentPlaceholder.length - 1));
+                }, 50); // Deletion speed (faster than typing)
+            } else {
+                // Move to next topic
+                setPlaceholderIndex((placeholderIndex + 1) % TOPIC_SUGGESTIONS.length);
+                setIsTypingPlaceholder(true);
+            }
+        }
+
+        return () => window.clearTimeout(timer);
+    }, [currentPlaceholder, isTypingPlaceholder, placeholderIndex, shouldAnimate]);
+
+    // Stop animation when input is focused or has content
+    useEffect(() => {
+        setShouldAnimate(topic.trim() === '');
+        if (topic.trim() !== '') {
+            setCurrentPlaceholder('');
+        }
+    }, [topic]);
+
     // Sets the generating state in the typing test hook when content is being generated
     useEffect(() => {
         setGenerating(isGeneratingContent);
@@ -83,6 +131,19 @@ export const TypingTest: React.FC = () => {
         }
     };
 
+    // Handler for focus to stop animation
+    const handleInputFocus = () => {
+        setShouldAnimate(false);
+        showSuggestionsDropdown();
+    };
+
+    // Handler for blur to restart animation if empty
+    const handleInputBlur = () => {
+        if (topic.trim() === '') {
+            setShouldAnimate(true);
+        }
+    };
+
     return (
         <div
             className="flex-1 flex flex-col items-center justify-between py-4 px-6 relative"
@@ -96,9 +157,10 @@ export const TypingTest: React.FC = () => {
                                 type="text"
                                 value={topic}
                                 onChange={handleTopicChange}
-                                onFocus={showSuggestionsDropdown}
+                                onFocus={handleInputFocus}
+                                onBlur={handleInputBlur}
                                 onKeyDown={handleTopicKeyDown}
-                                placeholder="Enter a topic for typing practice..."
+                                placeholder={shouldAnimate ? ` ${currentPlaceholder}...` : "Enter a topic for typing practice..."}
                                 className="w-full px-3 py-2 bg-zinc-800 text-zinc-300 rounded border border-zinc-700 focus:outline-none focus:border-zinc-500 topic-input"
                                 aria-label="Topic input, press Enter to generate content"
                             />
