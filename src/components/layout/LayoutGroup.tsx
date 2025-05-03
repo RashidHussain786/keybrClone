@@ -24,4 +24,4 @@ export const LayoutGroup: React.FC = () => {
             </div>
         </div>
     );
-};
+}; 

@@ -1,9 +1,7 @@
 import React from 'react';
+import { KeyboardState } from '../../types';
 
-interface KeyboardProps {
-    pressedKeys: Set<string>;
-    currentKey: string;
-}
+type KeyboardProps = KeyboardState;
 
 type KeyColor = 'green' | 'red' | 'orange' | 'blue' | 'purple' | 'yellow';
 
@@ -137,4 +135,4 @@ export const Keyboard: React.FC<KeyboardProps> = ({ pressedKeys, currentKey }) =
             ))}
         </div>
     );
-};
+}; 
