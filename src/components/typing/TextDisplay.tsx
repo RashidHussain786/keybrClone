@@ -1,12 +1,16 @@
 import React from 'react';
+import { TextState } from '../../types';
 
-interface TextDisplayProps {
-    text: string;
-    input: string;
-    cursorPosition: number;
+interface TextDisplayProps extends Pick<TextState, 'text' | 'input' | 'cursorPosition'> {
+    isCompleted?: boolean;
 }
 
-export const TextDisplay: React.FC<TextDisplayProps> = ({ text, input, cursorPosition }) => {
+export const TextDisplay: React.FC<TextDisplayProps> = ({
+    text,
+    input,
+    cursorPosition,
+    isCompleted = false
+}) => {
     // Split text into words for better layout
     const words = text.split(' ');
 
@@ -14,7 +18,7 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({ text, input, cursorPos
     let currentIndex = 0;
 
     return (
-        <div className="text-xl text-zinc-500 leading-relaxed tracking-wide flex flex-wrap">
+        <div className={`text-xl text-zinc-500 leading-relaxed tracking-wide flex flex-wrap ${isCompleted ? 'opacity-50' : ''}`}>
             {words.map((word, wordIndex) => {
                 const wordWithSpace = wordIndex < words.length - 1 ? word + ' ' : word;
                 const wordElement = (
@@ -27,13 +31,13 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({ text, input, cursorPos
                             currentIndex++;
 
                             // Determine character status
-                            let status = 'pending';
+                            let status: 'pending' | 'correct' | 'incorrect' = 'pending';
                             if (charIndex_global < input.length) {
                                 status = input[charIndex_global] === char ? 'correct' : 'incorrect';
                             }
 
                             // Determine if this is the current character (cursor position)
-                            const isCurrent = charIndex_global === cursorPosition;
+                            const isCurrent = charIndex_global === cursorPosition && !isCompleted;
 
                             // Style based on status and cursor position
                             let charStyle = "text-zinc-600"; // pending
@@ -59,4 +63,4 @@ export const TextDisplay: React.FC<TextDisplayProps> = ({ text, input, cursorPos
             })}
         </div>
     );
-};
+}; 

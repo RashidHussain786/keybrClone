@@ -1,5 +1,5 @@
-import { LayoutGroup } from './components/LayoutGroup';
-import { TypingTest } from './components/TypingTest';
+import { LayoutGroup } from './components/layout/LayoutGroup';
+import { TypingTest } from './components/typing/TypingTest';
 
 function App() {
   return (

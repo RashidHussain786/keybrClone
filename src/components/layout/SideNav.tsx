@@ -26,4 +26,4 @@ export const SideNav: React.FC = () => {
             </div>
         </div>
     );
-};
+}; 
